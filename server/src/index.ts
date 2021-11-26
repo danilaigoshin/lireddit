@@ -10,7 +10,7 @@ import cookieSession from 'cookie-session';
 import cors from 'cors';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 
-import MikroORMConfig from './mikro-orm.config';
+import { MikroORMConfig } from './mikro-orm.config';
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
 import { UserResolver } from './resolvers/user';
