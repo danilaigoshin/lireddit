@@ -7,6 +7,7 @@ import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
+import path from 'path';
 import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 
 import { HelloResolver } from './resolvers/hello';
@@ -16,17 +17,21 @@ import { __prod__, port, COOKIE_NAME } from './constants';
 import { MyContext } from './types';
 import { Post } from './entities/Post';
 import { User } from './entities/User';
+import { Updoot } from './entities/Updoot';
 
 const main = async () => {
-  await createConnection({
+  const conn = await createConnection({
     type: 'postgres',
     database: 'lireddit2',
     username: 'postgres',
     password: '123456',
     logging: true,
     synchronize: true,
-    entities: [Post, User],
+    migrations: [path.join(__dirname, './migrations/*')],
+    entities: [Post, User, Updoot],
   });
+
+  await conn.runMigrations();
 
   const app = express();
   const RedisStore = connectRedis(session);

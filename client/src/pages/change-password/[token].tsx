@@ -18,7 +18,7 @@ interface ChangePassword {
   token: string;
 }
 
-const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+const ChangePassword: NextPage = () => {
   const [tokenError, setTokenError] = useState('');
   const router = useRouter();
   const [, changePassword] = useChangePasswordMutation();
@@ -29,8 +29,9 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   ) => {
     const { data } = await changePassword({
       newPassword: values.newPassword,
-      token: token,
+      token: typeof router.query.token === 'string' ? router.query.token : '',
     });
+
     if (data?.changePassword.errors) {
       const errorMap = toErrorMap(data.changePassword.errors);
 
@@ -40,6 +41,7 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
 
       setErrors(errorMap);
     }
+
     if (data?.changePassword.user) {
       router.push('/');
     }
@@ -82,10 +84,4 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   );
 };
 
-ChangePassword.getInitialProps = ({ query }) => {
-  return {
-    token: query.token as string,
-  };
-};
-
-export default withUrqlClient(createUrqlClient, { ssr: false })(ChangePassword);
+export default withUrqlClient(createUrqlClient)(ChangePassword);

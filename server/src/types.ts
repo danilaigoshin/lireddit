@@ -6,6 +6,6 @@ export interface MyContext {
   req: Request & {
     session: Session & Partial<SessionData> & { userId?: number };
   };
-  redis: Redis;
   res: Response;
+  redis: Redis;
 }
