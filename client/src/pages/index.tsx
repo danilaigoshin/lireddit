@@ -14,6 +14,7 @@ import {
 import NextLink from 'next/link';
 import { useState } from 'react';
 import { UpdootSection } from '../components/UpdootSection';
+import { PostButtons } from '../components/PostButtons';
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -44,17 +45,6 @@ const Index = () => {
       </Flex>
     );
 
-  const renderHeader = () => (
-    <Flex align='center'>
-      <Heading>LiReddit</Heading>
-      <NextLink href='/create-post'>
-        <Link ml='auto'>
-          <Button>Create post</Button>
-        </Link>
-      </NextLink>
-    </Flex>
-  );
-
   const renderPosts = () => {
     if (!fetching && !data) {
       return <div>You got query failed</div>;
@@ -62,16 +52,28 @@ const Index = () => {
 
     return !fetching && data ? (
       <Stack spacing={8}>
-        {data!.posts.posts.map((post) => (
-          <Flex key={post.id} p={5} shadow='md' borderWidth='1px'>
-            <UpdootSection post={post} />
-            <Box>
-              <Heading fontSize='xl'>{post.title}</Heading>
-              <Text pb={3}>posted by {post.creator.username}</Text>
-              <Text>{post.textSnippet}</Text>
-            </Box>
-          </Flex>
-        ))}
+        {data!.posts.posts.map(
+          (post) =>
+            post && (
+              <Flex key={post.id} p={5} shadow='md' borderWidth='1px'>
+                <UpdootSection post={post} />
+                <Box flex={1}>
+                  <NextLink href='/post/[id]' as={`/post/${post.id}`}>
+                    <Link>
+                      <Heading fontSize='xl'>{post.title}</Heading>
+                    </Link>
+                  </NextLink>
+                  <Text pb={3}>posted by {post.creator.username}</Text>
+                  <Flex align='center'>
+                    <Text flex={1}>{post.textSnippet}</Text>
+                    <Box ml='auto'>
+                      <PostButtons id={post.id} creatorId={post.creator.id} />
+                    </Box>
+                  </Flex>
+                </Box>
+              </Flex>
+            )
+        )}
       </Stack>
     ) : (
       <p>loading...</p>
@@ -80,8 +82,6 @@ const Index = () => {
 
   return (
     <Layout>
-      {renderHeader()}
-      <br />
       {renderPosts()}
       {renderLoadMore()}
     </Layout>

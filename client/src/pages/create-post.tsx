@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Formik, Form } from 'formik';
 import { Button } from '@chakra-ui/button';
 import { Box } from '@chakra-ui/layout';
@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 
 import InputField from '../components/InputField';
 import { TextAreaField } from '../components/TextArea';
-import { useCreatePostMutation, useMeQuery } from '../generated/graphql';
+import { useCreatePostMutation } from '../generated/graphql';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { Layout } from '../components/Layout';
