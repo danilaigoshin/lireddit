@@ -8,10 +8,13 @@ import NextLink from 'next/link';
 
 import InputField from '../../components/InputField';
 import Wrapper from '../../components/Wrapper';
-import { useChangePasswordMutation } from '../../generated/graphql';
+import {
+  MeDocument,
+  MeQuery,
+  useChangePasswordMutation,
+} from '../../generated/graphql';
 import { toErrorMap } from '../../utils/toErrorMap';
-import { withUrqlClient } from 'next-urql';
-import { createUrqlClient } from '../../utils/createUrqlClient';
+import { withApollo } from '../../utils/withApollo';
 
 interface ChangePassword {
   newPassword: string;
@@ -21,15 +24,26 @@ interface ChangePassword {
 const ChangePassword: NextPage = () => {
   const [tokenError, setTokenError] = useState('');
   const router = useRouter();
-  const [, changePassword] = useChangePasswordMutation();
+  const [changePassword] = useChangePasswordMutation();
 
   const handleSubmit = async (
     values: ChangePassword,
     { setErrors }: FormikHelpers<ChangePassword>
   ) => {
     const { data } = await changePassword({
-      newPassword: values.newPassword,
-      token: typeof router.query.token === 'string' ? router.query.token : '',
+      variables: {
+        newPassword: values.newPassword,
+        token: typeof router.query.token === 'string' ? router.query.token : '',
+      },
+      update: (cache, { data }) => {
+        cache.writeQuery<MeQuery>({
+          query: MeDocument,
+          data: {
+            __typename: 'Query',
+            me: data?.changePassword.user,
+          },
+        });
+      },
     });
 
     if (data?.changePassword.errors) {
@@ -84,4 +98,4 @@ const ChangePassword: NextPage = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(ChangePassword);
+export default withApollo({ ssr: true })(ChangePassword);

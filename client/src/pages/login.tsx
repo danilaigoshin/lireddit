@@ -6,10 +6,9 @@ import NextLink from 'next/link';
 
 import InputField from '../components/InputField';
 import Wrapper from '../components/Wrapper';
-import { useLoginMutation } from '../generated/graphql';
+import { MeDocument, MeQuery, useLoginMutation } from '../generated/graphql';
 import { toErrorMap } from '../utils/toErrorMap';
-import { withUrqlClient } from 'next-urql';
-import { createUrqlClient } from '../utils/createUrqlClient';
+import { withApollo } from '../utils/withApollo';
 
 interface User {
   usernameOrEmail: string;
@@ -18,13 +17,25 @@ interface User {
 
 const Login: React.FC<{}> = ({}) => {
   const router = useRouter();
-  const [, login] = useLoginMutation();
+  const [login] = useLoginMutation();
 
   const handleSubmit = async (
     values: User,
     { setErrors }: FormikHelpers<User>
   ) => {
-    const { data } = await login(values);
+    const { data } = await login({
+      variables: values,
+      update: (cache, { data }) => {
+        cache.writeQuery<MeQuery>({
+          query: MeDocument,
+          data: {
+            __typename: 'Query',
+            me: data?.login.user,
+          },
+        });
+        cache.evict({ fieldName: 'posts' });
+      },
+    });
     if (data?.login.errors) {
       setErrors(toErrorMap(data.login.errors));
     }
@@ -79,4 +90,4 @@ const Login: React.FC<{}> = ({}) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient)(Login);
+export default withApollo({ ssr: false })(Login);

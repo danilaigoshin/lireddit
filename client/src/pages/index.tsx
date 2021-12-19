@@ -1,7 +1,5 @@
-import { withUrqlClient } from 'next-urql';
 import { Layout } from '../components/Layout';
 import { usePostsQuery } from '../generated/graphql';
-import { createUrqlClient } from '../utils/createUrqlClient';
 import {
   Box,
   Button,
@@ -12,18 +10,17 @@ import {
   Text,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
-import { useState } from 'react';
 import { UpdootSection } from '../components/UpdootSection';
 import { PostButtons } from '../components/PostButtons';
+import { withApollo } from '../utils/withApollo';
 
 const Index = () => {
-  const [variables, setVariables] = useState({
-    limit: 10,
-    cursor: null as null | string,
-  });
-
-  const [{ data, fetching }] = usePostsQuery({
-    variables,
+  const { data, loading, fetchMore, variables } = usePostsQuery({
+    variables: {
+      limit: 10,
+      cursor: null,
+    },
+    notifyOnNetworkStatusChange: true,
   });
 
   const renderLoadMore = () =>
@@ -32,12 +29,14 @@ const Index = () => {
       <Flex my={7}>
         <Button
           onClick={() => {
-            setVariables({
-              limit: variables.limit,
-              cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+            fetchMore({
+              variables: {
+                limit: variables?.limit,
+                cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+              },
             });
           }}
-          isLoading={fetching}
+          isLoading={loading}
           m='auto'
         >
           Load more
@@ -46,11 +45,11 @@ const Index = () => {
     );
 
   const renderPosts = () => {
-    if (!fetching && !data) {
+    if (!loading && !data) {
       return <div>You got query failed</div>;
     }
 
-    return !fetching && data ? (
+    return !loading && data ? (
       <Stack spacing={8}>
         {data!.posts.posts.map(
           (post) =>
@@ -88,4 +87,4 @@ const Index = () => {
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
+export default withApollo({ ssr: true })(Index);
